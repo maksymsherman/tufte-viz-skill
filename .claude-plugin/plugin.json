@@ -2,7 +2,9 @@
   "name": "tufte-viz",
   "version": "1.0.0",
   "description": "Enforces Edward Tufte's data visualization principles for publication-quality, chartjunk-free graphics",
-  "author": "tufte-viz-skill",
+  "author": {
+    "name": "maksymsherman"
+  },
   "license": "MIT",
   "keywords": [
     "tufte",
