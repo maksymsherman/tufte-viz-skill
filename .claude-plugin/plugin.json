@@ -1,0 +1,21 @@
+{
+  "name": "tufte-viz",
+  "version": "1.0.0",
+  "description": "Enforces Edward Tufte's data visualization principles for publication-quality, chartjunk-free graphics",
+  "author": "tufte-viz-skill",
+  "license": "MIT",
+  "keywords": [
+    "tufte",
+    "data-visualization",
+    "matplotlib",
+    "plotly",
+    "seaborn",
+    "altair",
+    "d3",
+    "ggplot2",
+    "charts",
+    "graphs",
+    "plotting"
+  ],
+  "skills": "./skills/"
+}
