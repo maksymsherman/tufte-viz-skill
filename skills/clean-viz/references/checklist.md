@@ -33,8 +33,9 @@ Run through every item after generating visualization code. Each item is pass/fa
 ## Labels and Legends
 
 - [ ] Legend box removed; series are directly labeled on the plot
-- [ ] Key data points are annotated (max, min, notable values)
-- [ ] Redundant axis labels removed where title or context provides meaning
+- [ ] Key data points annotated where they tell a story (outliers, named entities, inflection points) — NOT raw coordinate tuples for min/max that range frames already communicate
+- [ ] Axis labels with units of measurement are present — only omit axis labels when both meaning and unit are obvious from context (e.g., "Year" when ticks are "2018, 2019, 2020")
+- [ ] Label precision matches data — no trailing `.0` on whole numbers; minimum decimal places needed
 - [ ] **No label-to-label collisions**: check that every direct label has clear space from all other direct labels — especially when series have similar endpoint values
 - [ ] **No label-to-data collisions**: check that labels do not overlap with nearby data points, lines, or markers
 - [ ] If labels were displaced to avoid collisions, leader lines or offsets make the association clear
@@ -46,6 +47,7 @@ Run through every item after generating visualization code. Each item is pass/fa
 - [ ] At most one accent color used for emphasis
 - [ ] No rainbow, jet, or spectral colormaps
 - [ ] If multiple colors needed, using a colorblind-safe palette
+- [ ] Colors used for lines and text have sufficient contrast on white — no low-contrast colors (cyan `#88CCEE`, olive `#999933`) for thin lines or small text
 - [ ] No gradient fills on bars or areas
 - [ ] Background is white
 

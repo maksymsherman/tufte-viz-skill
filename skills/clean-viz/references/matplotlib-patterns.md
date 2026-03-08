@@ -64,16 +64,18 @@ CLEAN_SMALL_SIZE = 9       # secondary labels, de-emphasized text, small multipl
 CLEAN_LINE_STYLES = ['solid', 'dashed', (0, (4, 2, 1, 2)), 'dotted']
 #                    solid    dashed    dash-dot                dotted
 
-# Colorblind-safe palette (Paul Tol) — use when multiple colors required
+# Colorblind-safe palette (Paul Tol) — ordered by contrast on white backgrounds.
+# High-contrast colors come first; use these for lines, text, and small elements.
+# Lower-contrast colors (cyan, olive) are at the end — use only for fills or large areas.
 CLEAN_COLORS = [
-    '#332288',  # indigo
-    '#88CCEE',  # cyan
-    '#44AA99',  # teal
-    '#117733',  # green
-    '#999933',  # olive
-    '#CC6677',  # rose
-    '#882255',  # wine
-    '#AA4499',  # purple
+    '#332288',  # indigo  (high contrast)
+    '#CC6677',  # rose    (high contrast)
+    '#117733',  # green   (high contrast)
+    '#882255',  # wine    (high contrast)
+    '#44AA99',  # teal    (medium contrast)
+    '#AA4499',  # purple  (medium contrast)
+    '#88CCEE',  # cyan    (low contrast — avoid for lines on white)
+    '#999933',  # olive   (low contrast — avoid for lines on white)
 ]
 ```
 
@@ -318,6 +320,58 @@ def clean_bar_chart(ax, categories, values, color=CLEAN_MEDIUM_GRAY):
             bar.get_x() + bar.get_width() / 2, label_y,
             f'{val}',
             ha='center', va='bottom' if height >= 0 else 'top',
+            fontsize=CLEAN_LABEL_SIZE, fontfamily='serif', color=CLEAN_BLACK,
+        )
+
+    return bars
+```
+
+---
+
+## Horizontal Bar Chart (with Reference Lines)
+
+For ranked categorical data shown as horizontal bars — the preferred substitute
+for pie charts and donut charts:
+
+```python
+def clean_horizontal_bar_chart(ax, categories, values, color=CLEAN_MEDIUM_GRAY,
+                                highlight_max=True, value_fmt='{:.0f}'):
+    """Horizontal bar chart with vertical reference lines for easy reading.
+
+    Args:
+        categories: list of category names (will be sorted by value, largest at top)
+        values: list of numeric values
+        color: default bar color
+        highlight_max: if True, accent-color the largest bar
+        value_fmt: format string for direct labels (use '{:.0f}' for ints, '{:.1f}%' for %)
+    """
+    # Sort ascending so largest appears at top
+    sorted_pairs = sorted(zip(categories, values), key=lambda p: p[1])
+    cats = [p[0] for p in sorted_pairs]
+    vals = [p[1] for p in sorted_pairs]
+
+    colors = [CLEAN_ACCENT if (highlight_max and v == max(vals)) else color
+              for v in vals]
+    bars = ax.barh(cats, vals, color=colors, edgecolor='none', height=0.6)
+
+    # Remove all spines
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+
+    # Thin vertical reference lines at round intervals
+    ax.xaxis.grid(color=CLEAN_FAINT_GRAY, linewidth=0.8)
+    ax.set_axisbelow(True)  # reference lines behind bars
+
+    # Remove tick marks
+    ax.tick_params(bottom=False, left=False)
+
+    # Direct-label bar values
+    for bar, val in zip(bars, vals):
+        width = bar.get_width()
+        ax.text(
+            width + max(vals) * 0.02, bar.get_y() + bar.get_height() / 2,
+            value_fmt.format(val),
+            ha='left', va='center',
             fontsize=CLEAN_LABEL_SIZE, fontfamily='serif', color=CLEAN_BLACK,
         )
 

@@ -87,8 +87,9 @@ Apply ALL of the following to every visualization:
   - As a last resort, use short leader lines connecting displaced labels to their data points
   - Always visually verify that no label overlaps another label or obscures data points
 - **Pad axes for end-of-line labels without breaking range frames** — extending `xlim` for label room creates ticks and spines in non-data territory. After any `set_xlim` override: (1) reset `set_xticks` to data-range-only values, (2) re-assert `spines['bottom'].set_bounds(data_min, data_max)`. See the `pad_axis_for_labels` helper in the matplotlib patterns.
-- **Annotate key data points** — label maximums, minimums, inflection points, or notable values directly on the plot
-- **Remove redundant axis labels** — if the title or context makes the axis meaning obvious, omit the label
+- **Annotate data points that tell a story** — label outliers, named entities, inflection points, or turning points. Do NOT annotate min/max with raw coordinate tuples like `(9, 35.0)` — range frame bounds already communicate extremes through axis ticks. Annotations should add context that the axes alone cannot provide (e.g., "2020 lockdown" on a dip, or a company name on a scatter point)
+- **Always include units of measurement on axes** — an axis label is redundant only when both its meaning AND its unit are completely obvious from the title or surrounding context. "Revenue" without a currency is unclear; "Income (thousands)" without a unit is ambiguous. When in doubt, keep the label. Omit only truly redundant labels (e.g., an x-axis labeled "Year" when the tick labels are already "2018, 2019, 2020")
+- **Match label precision to the data** — if all values are whole numbers, format labels as integers (e.g., `35%` not `35.0%`). Use the minimum number of decimal places needed to distinguish values. Trailing zeros waste ink and imply false precision
 
 ### Consistency in Generated Code
 - **Never hardcode font sizes or colors in helper functions** — always reference the defined global constants (e.g., `CLEAN_LABEL_SIZE`, `CLEAN_BLACK`)
@@ -103,10 +104,11 @@ Apply ALL of the following to every visualization:
 ### Color
 - **Default to grayscale** — use black, dark gray (`#333333`), medium gray (`#888888`), light gray (`#cccccc`)
 - **Single accent color** — when emphasis is needed, use exactly one color (default: `#c0392b` muted red)
-- **Colorblind-safe palette** — when multiple colors are required, use:
-  - `#332288` (indigo), `#88CCEE` (cyan), `#44AA99` (teal), `#117733` (green),
-    `#999933` (olive), `#CC6677` (rose), `#882255` (wine), `#AA4499` (purple)
-  - This is the Paul Tol colorblind-safe palette
+- **Colorblind-safe palette** — when multiple colors are required, use the Paul Tol palette ordered by contrast (high-contrast first):
+  - `#332288` (indigo), `#CC6677` (rose), `#117733` (green), `#882255` (wine),
+    `#44AA99` (teal), `#AA4499` (purple), `#88CCEE` (cyan), `#999933` (olive)
+  - The first 6 colors are safe for lines and text on white; cyan and olive are low-contrast — reserve for fills or large areas only
+- **Ensure sufficient contrast on white backgrounds** — lighter palette colors (e.g., cyan `#88CCEE`, olive `#999933`) are hard to read as thin lines or small text on white. For line charts and labels, prefer the high-contrast subset: indigo (`#332288`), teal (`#44AA99`), green (`#117733`), rose (`#CC6677`), wine (`#882255`), purple (`#AA4499`). Reserve lower-contrast colors for fills, large areas, or thick bars where readability is not an issue
 - **Never use rainbow/jet colormaps** — use sequential single-hue (grays, blues) or diverging (blue-white-red) instead
 
 ### Layout & Density
@@ -143,6 +145,7 @@ Do NOT generate these chart types. If the user requests one, explain the visuali
 - **No drop shadows** — on any element
 - **No 3D perspective effects** — ever
 - **No heavy gridlines** — if gridlines are needed, use thin light gray (`#eeeeee`) or white-on-bar technique
+- **Use reference lines for horizontal bar charts** — readers need help judging position along a horizontal scale. Add thin light gray (`#eeeeee`) vertical reference lines at round intervals (e.g., every 5 or 10 units). This is the horizontal equivalent of the white-on-bar technique used for vertical bars
 - **No decorative borders or boxes** — around legends, titles, or annotations
 - **No ALL CAPS text** — in titles, labels, or annotations
 - **No rotated tick labels** — if labels are too long, use a horizontal bar chart or abbreviate
