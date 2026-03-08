@@ -1,0 +1,27 @@
+{
+  "name": "matplotlib-line",
+  "prompt": "Create a matplotlib line chart of monthly revenue in USD with direct labels instead of a legend.",
+  "required_patterns": [
+    {
+      "pattern": "Code checks\\s*:",
+      "description": "includes the code-check audit line"
+    },
+    {
+      "pattern": "Rendered checks\\s*:",
+      "description": "includes the rendered-check audit line"
+    },
+    {
+      "pattern": "Session consistency\\s*:",
+      "description": "includes the session-consistency audit line"
+    },
+    {
+      "pattern": "(USD|\\$)",
+      "description": "mentions a unit for revenue"
+    },
+    {
+      "pattern": "(direct label|directly label|legend removed|series are directly labeled)",
+      "description": "signals direct-label intent instead of a legend"
+    }
+  ],
+  "forbidden_patterns": []
+}

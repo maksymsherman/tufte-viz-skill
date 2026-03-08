@@ -7,7 +7,7 @@
     {
       "name": "clean-viz",
       "source": "./",
-      "description": "Applies data visualization best practices inspired by Edward Tufte's principles for publication-quality, chartjunk-free graphics",
+      "description": "Applies clean-viz chart guidance and a mandatory audit workflow for chart-generation requests",
       "version": "1.0.0",
       "license": "MIT",
       "keywords": [

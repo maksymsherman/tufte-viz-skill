@@ -2,10 +2,12 @@
 name: clean-viz
 description: >
   Applies data visualization best practices inspired by Edward Tufte's principles
-  whenever creating charts, plots, or visualizations. Triggers on any request involving matplotlib, pyplot,
-  seaborn, plotly, altair, d3, ggplot2, Observable Plot, or general terms like
-  "chart", "plot", "graph", "visualization", "figure", "histogram", "scatter",
-  "bar chart", "line chart", "heatmap", "sparkline", "dashboard".
+  when the user is creating, restyling, or critiquing a data visualization in
+  matplotlib, pyplot, seaborn, plotly, altair, d3, ggplot2, or Observable Plot,
+  or when they explicitly ask for a chart such as a bar chart, line chart,
+  scatter plot, heatmap, histogram, sparkline, slope chart, or small multiples.
+  Do not trigger for generic uses of "plot", "graph", "figure", or "dashboard"
+  unless the user is clearly asking for a visualization.
 triggers:
   - matplotlib
   - pyplot
@@ -16,17 +18,14 @@ triggers:
   - ggplot2
   - observable plot
   - chart
-  - plot
-  - graph
   - visualization
-  - figure
   - histogram
-  - scatter
+  - scatter plot
+  - scatter chart
   - bar chart
   - line chart
   - heatmap
   - sparkline
-  - dashboard
   - data visualization
   - small multiples
   - slopegraph
@@ -40,6 +39,10 @@ You are now operating under data visualization best practices inspired by Edward
 
 1. The user explicitly overrides a specific rule, **or**
 2. The data genuinely requires it (e.g., negative values in a bar chart, diverging colormaps in a heatmap) — but this applies to less than 0.5% of visualizations. Before deviating, seriously consider whether the standard pattern can be adapted instead. If deviation is truly necessary, state which rule is being bent and why.
+
+### Activation Guard
+
+Use this skill only when the user is actually asking to create, restyle, critique, or debug a visualization. Do not activate it for generic references to "plot", "graph", "figure", or "dashboard" that are not about chart generation or chart review.
 
 ---
 
@@ -197,7 +200,19 @@ Read `references/general-patterns.md` for:
 
 ---
 
-## 5. Python Environment & Dependency Setup
+## 5. Execution & Dependency Setup
+
+Before finalizing visualization code, prefer this workflow:
+
+1. Generate the code
+2. Execute or render it if the environment allows
+3. Inspect the rendered result
+4. Run the quality gate in `references/checklist.md`
+5. Present the final answer with an audit summary
+
+If you cannot render the chart, you must still run the code checks, but you must report rendered checks as not visually verified.
+
+### Python environment
 
 Before running generated Python visualization code, ensure the required libraries are installed.
 
@@ -282,9 +297,23 @@ For before/after or two-point-in-time comparisons:
 
 ---
 
-## 10. Post-Generation Checklist
+## 10. Quality Gate
 
-After generating any visualization code, you MUST write out the full checklist from `references/checklist.md` as a visible markdown table in your response, with pass/fail for every item. This is not optional. If any item fails, fix the code and re-run the checklist before presenting the final version to the user. A visualization without a written checklist is incomplete.
+After generating any visualization code, you MUST run the checklist in `references/checklist.md` before presenting the final version. This is not optional.
+
+Treat the checklist as a three-part gate:
+
+1. **Code checks** — always required before the final answer
+2. **Rendered checks** — only mark these as passed if you actually rendered or visually inspected the chart output
+3. **Session consistency checks** — apply these when the user is generating 2+ related charts in one response or session
+
+### Honesty Rule
+
+Never claim that rendered checks passed unless you actually rendered or viewed the chart. If you could not inspect the output, say `Rendered checks: not visually verified`.
+
+### Failure Rule
+
+If any code check fails, fix the code before finalizing. If a rendered check cannot be verified in the current environment, report that limitation plainly instead of guessing.
 
 ---
 
@@ -307,4 +336,8 @@ When generating visualization code:
 1. State which visualization principles are being applied (brief, 1-2 lines)
 2. Provide the complete, runnable code
 3. Include a brief note on what was intentionally omitted and why (e.g., "Legend removed: series are directly labeled")
-4. **Write out the checklist** — after the code block, include a markdown table with every checklist item and its pass/fail status. If any item fails, fix the code BEFORE presenting it. Do not skip this step or perform it silently. The written checklist is part of the deliverable.
+4. Include a compact audit block:
+   - `Code checks: passed` or `Code checks: fixed issues before finalizing`
+   - `Rendered checks: passed after rendering` or `Rendered checks: not visually verified`
+   - `Session consistency: n/a`, `passed`, or `not checked`
+5. Expand the full checklist only when the user asks for it explicitly or when failures need explanation.

@@ -2,6 +2,8 @@
 
 Clean-viz patterns for visualization libraries beyond matplotlib and Plotly (inspired by Edward Tufte's principles). Apply the same core principles: maximize data-ink ratio, remove chartjunk, use range frames, direct labeling, and serif typography.
 
+Altair and ggplot2 examples below are runnable starting points. D3.js and Observable Plot examples are pattern sketches to adapt into an existing chart scaffold with scales and layout already defined.
+
 ---
 
 ## Altair (Python)
@@ -11,37 +13,47 @@ Clean-viz patterns for visualization libraries beyond matplotlib and Plotly (ins
 ```python
 import altair as alt
 
+CLEAN = {
+    'font': 'Georgia, serif',
+    'font_size': 11,
+    'label_size': 10,
+    'title_size': 13,
+    'black': '#333333',
+    'medium_gray': '#888888',
+    'colors': ['#332288', '#CC6677', '#117733', '#882255', '#44AA99', '#AA4499'],
+}
+
 def clean_theme():
     return {
         'config': {
             'view': {'strokeWidth': 0},
             'axis': {
-                'domainColor': '#333333',
+                'domainColor': CLEAN['black'],
                 'domainWidth': 1,
                 'grid': False,
-                'labelFont': 'Georgia, serif',
-                'labelFontSize': 10,
-                'labelColor': '#333333',
-                'tickColor': '#333333',
+                'labelFont': CLEAN['font'],
+                'labelFontSize': CLEAN['label_size'],
+                'labelColor': CLEAN['black'],
+                'tickColor': CLEAN['black'],
                 'tickSize': 4,
-                'titleFont': 'Georgia, serif',
-                'titleFontSize': 12,
+                'titleFont': CLEAN['font'],
+                'titleFontSize': CLEAN['font_size'],
                 'titleFontWeight': 'normal',
-                'titleColor': '#333333',
+                'titleColor': CLEAN['black'],
             },
             'header': {
-                'labelFont': 'Georgia, serif',
-                'titleFont': 'Georgia, serif',
+                'labelFont': CLEAN['font'],
+                'titleFont': CLEAN['font'],
             },
             'legend': {
-                'labelFont': 'Georgia, serif',
-                'titleFont': 'Georgia, serif',
+                'labelFont': CLEAN['font'],
+                'titleFont': CLEAN['font'],
             },
             'title': {
-                'font': 'Georgia, serif',
-                'fontSize': 14,
+                'font': CLEAN['font'],
+                'fontSize': CLEAN['title_size'],
                 'fontWeight': 'normal',
-                'color': '#333333',
+                'color': CLEAN['black'],
                 'anchor': 'start',
             },
             'background': 'white',
@@ -62,22 +74,25 @@ def clean_line_chart(df, x_col, y_col, color_col=None):
         y=alt.Y(y_col, axis=alt.Axis(grid=False)),
     )
 
-    line = base.mark_line(strokeWidth=1.5, color='#333333')
+    line = base.mark_line(strokeWidth=1.5, color=CLEAN['black'])
 
     if color_col:
-        line = base.encode(
-            color=alt.Color(color_col, legend=None),
-        ).mark_line(strokeWidth=1.5)
+        line = base.mark_line(strokeWidth=1.5).encode(
+            color=alt.Color(color_col, legend=None, scale=alt.Scale(range=CLEAN['colors'])),
+        )
 
-        # Direct labels at end of each series
-        labels = base.encode(
-            color=alt.Color(color_col, legend=None),
-            text=color_col,
-        ).mark_text(
-            align='left', dx=5, font='Georgia',
-            fontSize=10,
+        labels = alt.Chart(df).transform_joinaggregate(
+            max_x=f'max({x_col})',
+            groupby=[color_col],
         ).transform_filter(
-            alt.datum[x_col] == df[x_col].max()
+            f'datum.{x_col} == datum.max_x'
+        ).mark_text(
+            align='left', dx=6, font='Georgia',
+            fontSize=CLEAN['label_size'], color=CLEAN['black'],
+        ).encode(
+            x=x_col,
+            y=y_col,
+            text=color_col,
         )
         return (line + labels).properties(width=500, height=300)
 
@@ -89,14 +104,14 @@ def clean_line_chart(df, x_col, y_col, color_col=None):
 ```python
 def clean_bar_chart(df, x_col, y_col):
     """Bar chart in Altair."""
-    bars = alt.Chart(df).mark_bar(color='#888888').encode(
+    bars = alt.Chart(df).mark_bar(color=CLEAN['medium_gray']).encode(
         x=alt.X(x_col, axis=alt.Axis(grid=False, ticks=False)),
         y=alt.Y(y_col, axis=alt.Axis(grid=False, ticks=False)),
     )
 
     text = bars.mark_text(
         align='center', dy=-8,
-        font='Georgia', fontSize=10, color='#333333',
+        font='Georgia', fontSize=CLEAN['label_size'], color=CLEAN['black'],
     ).encode(text=y_col)
 
     return (bars + text).properties(width=400, height=300).configure_view(
@@ -110,13 +125,13 @@ def clean_bar_chart(df, x_col, y_col):
 def clean_facet(df, x_col, y_col, facet_col, columns=3):
     """Small multiples via Altair faceting."""
     return alt.Chart(df).mark_line(
-        strokeWidth=1.2, color='#333333'
+        strokeWidth=1.2, color=CLEAN['black']
     ).encode(
         x=alt.X(x_col, axis=alt.Axis(grid=False)),
         y=alt.Y(y_col, axis=alt.Axis(grid=False)),
     ).facet(
         facet=alt.Facet(facet_col, header=alt.Header(
-            labelFont='Georgia', labelFontSize=11,
+            labelFont='Georgia', labelFontSize=CLEAN['font_size'],
             titleFont='Georgia',
         )),
         columns=columns,
@@ -136,6 +151,7 @@ def clean_facet(df, x_col, y_col, facet_col, columns=3):
 const CLEAN = {
   fontFamily: 'Georgia, serif',
   fontSize: 12,
+  labelSize: 10,
   textColor: '#333333',
   lineColor: '#333333',
   mediumGray: '#888888',
@@ -149,27 +165,25 @@ const CLEAN = {
 ### Spine Removal and Axis Styling
 
 ```javascript
-function cleanAxes(svg, xAxis, yAxis, xData, yData) {
-  // X axis — bottom only, bounded to data range
+function cleanAxes(svg, xScale, yScale, width, height) {
+  const xAxis = d3.axisBottom(xScale).ticks(5).tickSizeOuter(0);
+  const yAxis = d3.axisLeft(yScale).ticks(5).tickSizeOuter(0);
+
   const xAxisGroup = svg.append('g')
     .attr('transform', `translate(0,${height})`)
-    .call(xAxis.tickSizeInner(-4).tickSizeOuter(0));
+    .call(xAxis);
 
-  // Y axis — left only, bounded to data range
   const yAxisGroup = svg.append('g')
-    .call(yAxis.tickSizeInner(-4).tickSizeOuter(0));
+    .call(yAxis);
 
-  // Remove domain lines beyond data range (range frame effect)
-  // Achieved by limiting the scale domain tightly to data
-  xAxisGroup.select('.domain')
-    .attr('d', `M${xScale(d3.min(xData))},0H${xScale(d3.max(xData))}`);
-  yAxisGroup.select('.domain')
-    .attr('d', `M0,${yScale(d3.min(yData))}V${yScale(d3.max(yData))}`);
+  // Trim the visible domain lines to the plotting area.
+  xAxisGroup.select('.domain').attr('d', `M0,0H${width}`);
+  yAxisGroup.select('.domain').attr('d', `M0,0V${height}`);
 
   // Style ticks and labels
   svg.selectAll('.tick text')
     .style('font-family', CLEAN.fontFamily)
-    .style('font-size', `${CLEAN.fontSize}px`)
+    .style('font-size', `${CLEAN.labelSize}px`)
     .style('fill', CLEAN.textColor);
 
   svg.selectAll('.tick line')
@@ -180,14 +194,14 @@ function cleanAxes(svg, xAxis, yAxis, xData, yData) {
 ### Direct Labeling
 
 ```javascript
-function directLabel(svg, x, y, text, color = CLEAN.textColor) {
+function directLabel(svg, x, y, text, labelColor = CLEAN.textColor) {
   svg.append('text')
     .attr('x', x + 8)
     .attr('y', y)
     .attr('dy', '0.35em')
     .attr('font-family', CLEAN.fontFamily)
-    .attr('font-size', CLEAN.fontSize)
-    .attr('fill', color)
+    .attr('font-size', CLEAN.labelSize)
+    .attr('fill', labelColor)
     .text(text);
 }
 ```
@@ -274,6 +288,7 @@ p <- ggplot(df, aes(x = x, y = y)) +
 ### Direct Labels (Replace Legends)
 
 ```r
+library(dplyr)
 library(ggrepel)
 
 # Label the last point of each series
@@ -287,9 +302,9 @@ p <- ggplot(df, aes(x = x, y = y, color = series)) +
     data = last_points,
     aes(label = series),
     direction = "y", hjust = 0, nudge_x = 0.5,
-    segment.color = NA, family = "serif", size = 3.5
+    segment.color = "#cccccc", family = "serif", size = 3.5, color = "#333333"
   ) +
-  scale_color_manual(values = c("#333333", "#888888", "#c0392b")) +
+  scale_color_manual(values = c("#332288", "#CC6677", "#117733", "#882255")) +
   theme_tufte(base_family = "serif") +
   theme(legend.position = "none")
 ```
@@ -417,18 +432,11 @@ Plot.plot({
 
 ---
 
-## Universal Checklist for Any Library
+## Audit Reminder for Any Library
 
-Regardless of which library you use, verify these after generating code:
+Regardless of which library you use, finish with the same audit contract:
 
-1. **Spines**: Only bottom and left remain; top and right removed
-2. **Range frames**: Spine bounds match data extent (not axis extent)
-3. **Font**: Serif family specified explicitly
-4. **Ticks**: Inward direction, reduced density
-5. **Grid**: Removed, white-on-bar, or `#d0d0d0` reference lines behind bars on white. Never `#eeeeee` behind bars on white (invisible)
-6. **Legend**: Removed; replaced with direct labels
-7. **Colors**: Grayscale default, single accent if needed
-8. **Background**: Pure white, no fills or images
-9. **Title**: Sentence case, positioned at left
-10. **Chart type**: No pie, 3D, dual-axis, or other banned types
-11. **Reference line visibility**: if reference lines were added, verify they are distinguishable from the background at output resolution
+1. **Code checks**: always run them before finalizing
+2. **Rendered checks**: only mark them passed after rendering or visually inspecting the chart
+3. **Session consistency**: run them when generating 2+ related charts
+4. **Audit block**: include `Code checks`, `Rendered checks`, and `Session consistency` in the final response

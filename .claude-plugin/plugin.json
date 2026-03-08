@@ -1,7 +1,7 @@
 {
   "name": "clean-viz",
   "version": "1.0.0",
-  "description": "Applies data visualization best practices inspired by Edward Tufte's principles for publication-quality, chartjunk-free graphics",
+  "description": "Applies clean-viz chart guidance and a mandatory audit workflow for chart-generation requests",
   "author": {
     "name": "maksymsherman"
   },

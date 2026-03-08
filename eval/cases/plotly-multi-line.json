@@ -1,0 +1,23 @@
+{
+  "name": "plotly-multi-line",
+  "prompt": "Create a Plotly multi-series line chart with direct labels and no legend.",
+  "required_patterns": [
+    {
+      "pattern": "Code checks\\s*:",
+      "description": "includes the code-check audit line"
+    },
+    {
+      "pattern": "Rendered checks\\s*:",
+      "description": "includes the rendered-check audit line"
+    },
+    {
+      "pattern": "(dash|dashed|dashdot|dotted|linestyle)",
+      "description": "signals non-color differentiation for multiple series"
+    },
+    {
+      "pattern": "(direct label|directly label|legend removed|showlegend=False)",
+      "description": "signals direct-label intent or explicit legend removal"
+    }
+  ],
+  "forbidden_patterns": []
+}

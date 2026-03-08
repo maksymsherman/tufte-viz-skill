@@ -1,0 +1,36 @@
+{
+  "name": "pie-substitution",
+  "prompt": "Make a matplotlib pie chart of market share.",
+  "required_patterns": [
+    {
+      "pattern": "(horizontal bar|dot plot)",
+      "description": "offers a clean substitute for the pie chart"
+    },
+    {
+      "pattern": "(area perception|data-ink|chartjunk|violat)",
+      "description": "briefly explains why the requested chart is a problem"
+    },
+    {
+      "pattern": "Code checks\\s*:",
+      "description": "includes the code-check audit line"
+    },
+    {
+      "pattern": "Rendered checks\\s*:",
+      "description": "includes the rendered-check audit line"
+    }
+  ],
+  "forbidden_patterns": [
+    {
+      "pattern": "plt\\.pie\\s*\\(",
+      "description": "does not emit matplotlib pie code"
+    },
+    {
+      "pattern": "go\\.Pie\\s*\\(",
+      "description": "does not emit Plotly pie code"
+    },
+    {
+      "pattern": "px\\.pie\\s*\\(",
+      "description": "does not emit Plotly Express pie code"
+    }
+  ]
+}

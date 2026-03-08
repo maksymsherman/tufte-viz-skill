@@ -1,12 +1,12 @@
 # clean-viz-skill
 
-A Claude Code plugin that applies data visualization best practices inspired by Edward Tufte's principles. When activated, Claude automatically produces publication-quality, chartjunk-free graphics across any charting library.
+A Claude Code plugin that applies clean-viz heuristics and an explicit audit workflow to chart-generation requests. Best support is for matplotlib, seaborn, and Plotly; other libraries are covered with secondary reference patterns.
 
 > **Note**: This project is not affiliated with Edward Tufte. It applies visualization principles described in his published works.
 
 ## What it does
 
-This skill auto-triggers whenever you ask Claude to create charts, plots, or visualizations. It applies these principles:
+This skill activates when you ask Claude to create, restyle, or critique a data visualization. It applies these principles:
 
 - **Maximizes data-ink ratio** — removes non-data elements (extra spines, heavy gridlines, decorative fills)
 - **Uses range frames** — axis lines span only the data range
@@ -15,18 +15,16 @@ This skill auto-triggers whenever you ask Claude to create charts, plots, or vis
 - **Grayscale default** — with a single accent color for emphasis
 - **Bans chartjunk** — no pie charts, 3D effects, dual axes, gradient fills, or rainbow colormaps
 - **Offers substitutes** — when a banned chart type is requested, suggests a clean alternative
+- **Runs a mandatory audit** — code-level checks are always required; rendered checks are only claimed when the chart was actually viewed
 
 ## Supported libraries
 
-| Library | Support |
-|---|---|
-| matplotlib | Full patterns — range frames, dot emphasis, white gridlines, slope charts, sparklines, small multiples |
-| seaborn | Override patterns on top of matplotlib |
-| Plotly | Full patterns — layout template, annotations, small multiples, sparklines |
-| Altair | Theme configuration, faceting, direct labels |
-| D3.js | Axis styling, spine removal, dot emphasis |
-| ggplot2 | `theme_tufte()`, `geom_rangeframe()`, `ggrepel` labels |
-| Observable Plot | Styling config, bar charts, faceting |
+| Library tier | Libraries | Support |
+|---|---|---|
+| Primary | matplotlib, seaborn | Most complete patterns — range frames, direct labels, small multiples, sparklines, slope charts |
+| Primary | Plotly | Strong patterns — bounded axis-line approximation, annotations, small multiples, sparklines |
+| Secondary | Altair, ggplot2 | Useful starting points for themes, faceting, and direct labels |
+| Secondary | D3.js, Observable Plot | Pattern sketches to adapt into an existing chart scaffold |
 
 ## Installation
 
@@ -56,7 +54,7 @@ claude --plugin-dir /path/to/clean-viz-skill
 
 ## How it works
 
-The plugin has two layers:
+The plugin has three layers:
 
 1. **SKILL.md** — Core principles, mandatory rules, banned chart types with substitutes, and a response protocol. This loads whenever a visualization request is detected.
 
@@ -64,7 +62,9 @@ The plugin has two layers:
    - `matplotlib-patterns.md` — matplotlib and seaborn
    - `plotly-patterns.md` — Plotly
    - `general-patterns.md` — Altair, D3.js, ggplot2, Observable Plot
-   - `checklist.md` — Post-generation verification checklist
+   - `checklist.md` — Mandatory quality gate used before finalizing a chart
+
+3. **eval/** — A small tracked response-check harness for policy regressions such as banned-type substitution, audit summaries, units, and direct-label intent
 
 ## Examples
 
@@ -89,6 +89,27 @@ Based on Edward Tufte's *The Visual Display of Quantitative Information*:
 - **Chartjunk elimination**: Remove all non-data visual elements
 - **Small multiples**: Repeated small charts for comparison instead of complex overlaid graphics
 - **Sparklines**: Word-sized graphics for inline data display
+
+## Verification Model
+
+The skill uses a mandatory three-part audit:
+
+- **Code checks** — always required before the final answer
+- **Rendered checks** — only marked as passed if the chart was actually rendered or visually inspected
+- **Session consistency** — used when multiple related charts are produced together
+
+This is deliberate: the checklist remains a hard gate, but the skill is not allowed to fake visual verification when it has not inspected the output.
+
+## Evaluation
+
+The tracked `eval/` harness is a lightweight smoke test for saved responses. It checks policy compliance for canonical prompts such as:
+
+- banned chart substitution
+- audit summary presence
+- units and direct-label intent
+- multi-series distinguishability cues
+
+The heavier ChartBench workflow remains local-only and is documented in [CLAUDE.md](CLAUDE.md).
 
 ## License
 

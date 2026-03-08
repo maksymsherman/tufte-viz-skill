@@ -8,19 +8,44 @@ A Claude Code skill that applies Edward Tufte's data visualization principles to
 skills/clean-viz/
   SKILL.md              # Main skill definition (triggers, rules, banned types)
   references/
-    checklist.md        # Post-generation checklist (must be printed with every chart)
+    checklist.md        # Mandatory quality gate (run every time; summarize in final response)
     matplotlib-patterns.md
     plotly-patterns.md
     general-patterns.md
+eval/
+  check_response.py     # Tracked smoke-test harness for saved model responses
+  cases/                # Canonical prompt expectations (regex-based)
 benchmark/
   chartbench-data/      # .gitignored — 9.7GB dataset, download locally
     test.jsonl           # 10,500 QA pairs across 42 chart subtypes
     data/test/test/      # 2,100 chart images with source data
 ```
 
+## Tracked Eval Harness
+
+The published repo now includes a small tracked response-check harness in `eval/`.
+
+### What it covers
+
+- banned-type substitution behavior
+- presence of the compact audit summary
+- units and direct-label intent for standard charts
+- multi-series differentiation cues
+
+### How to use it
+
+Save model responses as markdown files, then run:
+
+```bash
+python3 eval/check_response.py --case matplotlib-line /path/to/response.md
+python3 eval/check_response.py --responses-dir /path/to/saved-responses
+```
+
+The harness is intentionally lightweight and regex-based. It is a policy smoke test, not a rendering benchmark.
+
 ## ChartBench Testing
 
-The `benchmark/` directory contains the ChartBench dataset for systematically testing the clean-viz skill against all 42 chart subtypes. The data is .gitignored due to size.
+The `benchmark/` directory contains the ChartBench dataset for systematically testing the clean-viz skill against all 42 chart subtypes. The data is local-only and `.gitignored` due to size; it is not part of the published plugin repo.
 
 ### Setup (one-time)
 
@@ -44,7 +69,7 @@ Each chart lives at `benchmark/chartbench-data/data/test/test/{category}/{subtyp
 **Testing flow for each subtype:**
 1. Read `table.json` to get the data
 2. Ask Claude to visualize that data as the chart type specified in `meta.json`
-3. Verify the skill triggers and produces a checklist
+3. Verify the skill triggers and produces an audit summary with `Code checks` and `Rendered checks`
 4. Verify the output follows clean-viz rules (banned types get substituted, no chartjunk, etc.)
 5. For banned types (pie, 3D, radar, dual-axis), verify the skill explains the issue and offers a substitute
 

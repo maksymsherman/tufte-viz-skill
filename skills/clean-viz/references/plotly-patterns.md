@@ -12,38 +12,11 @@ Apply this layout to every Plotly figure:
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-CLEAN_LAYOUT = dict(
-    font=dict(family='Georgia, serif', size=12, color='#333333'),
-    paper_bgcolor='white',
-    plot_bgcolor='white',
-    showlegend=False,
-    margin=dict(l=60, r=30, t=40, b=50),
-    title=dict(
-        font=dict(size=14, family='Georgia, serif'),
-        x=0,
-        xanchor='left',
-    ),
-    xaxis=dict(
-        showgrid=False,
-        showline=True,
-        linecolor='#333333',
-        linewidth=1,
-        ticks='inside',
-        tickfont=dict(family='Georgia, serif', size=10),
-        mirror=False,
-        zeroline=False,
-    ),
-    yaxis=dict(
-        showgrid=False,
-        showline=True,
-        linecolor='#333333',
-        linewidth=1,
-        ticks='inside',
-        tickfont=dict(family='Georgia, serif', size=10),
-        mirror=False,
-        zeroline=False,
-    ),
-)
+# Typography constants
+CLEAN_FONT_SIZE = 11
+CLEAN_TITLE_SIZE = 13
+CLEAN_LABEL_SIZE = 10
+CLEAN_SMALL_SIZE = 9
 
 # Color constants
 CLEAN_BLACK = '#333333'
@@ -51,6 +24,37 @@ CLEAN_MEDIUM_GRAY = '#888888'
 CLEAN_LIGHT_GRAY = '#cccccc'
 CLEAN_REF_GRAY = '#d0d0d0'   # reference lines behind bars on white background
 CLEAN_ACCENT = '#c0392b'
+CLEAN_COLORS = ['#332288', '#CC6677', '#117733', '#882255', '#44AA99', '#AA4499']
+CLEAN_LINE_DASHES = ['solid', 'dash', 'dashdot', 'dot']
+
+CLEAN_LAYOUT = dict(
+    font=dict(family='Georgia, serif', size=CLEAN_FONT_SIZE, color=CLEAN_BLACK),
+    paper_bgcolor='white',
+    plot_bgcolor='white',
+    showlegend=False,
+    margin=dict(l=60, r=30, t=40, b=50),
+    title=dict(
+        font=dict(size=CLEAN_TITLE_SIZE, family='Georgia, serif'),
+        x=0,
+        xanchor='left',
+    ),
+    xaxis=dict(
+        showgrid=False,
+        showline=False,
+        ticks='inside',
+        tickfont=dict(family='Georgia, serif', size=CLEAN_LABEL_SIZE),
+        mirror=False,
+        zeroline=False,
+    ),
+    yaxis=dict(
+        showgrid=False,
+        showline=False,
+        ticks='inside',
+        tickfont=dict(family='Georgia, serif', size=CLEAN_LABEL_SIZE),
+        mirror=False,
+        zeroline=False,
+    ),
+)
 ```
 
 Usage:
@@ -67,25 +71,36 @@ fig.update_layout(title_text='Descriptive sentence-case title')
 Bind axis lines to the data range:
 
 ```python
-def apply_plotly_range_frame(fig, x_data, y_data):
-    """Constrain axis lines to span only the data range."""
+def apply_plotly_range_frame(fig, x_data, y_data, x_pad_fraction=0.05, y_pad_fraction=0.05):
+    """Approximate range frames with bounded axis-line shapes in data coordinates."""
     x_min, x_max = min(x_data), max(x_data)
     y_min, y_max = min(y_data), max(y_data)
-    x_pad = (x_max - x_min) * 0.05
-    y_pad = (y_max - y_min) * 0.05
+    x_pad = (x_max - x_min) * x_pad_fraction or 1
+    y_pad = (y_max - y_min) * y_pad_fraction or 1
+    existing_shapes = list(fig.layout.shapes) if fig.layout.shapes else []
 
     fig.update_xaxes(
         range=[x_min - x_pad, x_max + x_pad],
-        showline=True,
-        linecolor=CLEAN_BLACK,
-        linewidth=1,
+        showline=False,
     )
     fig.update_yaxes(
         range=[y_min - y_pad, y_max + y_pad],
-        showline=True,
-        linecolor=CLEAN_BLACK,
-        linewidth=1,
+        showline=False,
     )
+    fig.update_layout(shapes=existing_shapes + [
+        dict(
+            type='line',
+            x0=x_min, x1=x_max, y0=y_min, y1=y_min,
+            xref='x', yref='y',
+            line=dict(color=CLEAN_BLACK, width=1),
+        ),
+        dict(
+            type='line',
+            x0=x_min, x1=x_min, y0=y_min, y1=y_max,
+            xref='x', yref='y',
+            line=dict(color=CLEAN_BLACK, width=1),
+        ),
+    ])
     return fig
 ```
 
@@ -118,7 +133,7 @@ def clean_line_chart(x, y, name='', color=CLEAN_BLACK):
     fig.add_annotation(
         x=x[-1], y=y[-1], text=name,
         showarrow=False, xanchor='left', xshift=8,
-        font=dict(family='Georgia, serif', size=11, color=color),
+        font=dict(family='Georgia, serif', size=CLEAN_LABEL_SIZE, color=CLEAN_BLACK),
     )
 
     return fig
@@ -129,7 +144,7 @@ def clean_line_chart(x, y, name='', color=CLEAN_BLACK):
 ## Direct Annotations (Replace Legends)
 
 ```python
-def add_series_label(fig, x_end, y_end, label, color=CLEAN_BLACK):
+def add_series_label(fig, x_end, y_end, label):
     """Add a direct label at the end of a data series."""
     fig.add_annotation(
         x=x_end, y=y_end,
@@ -137,7 +152,7 @@ def add_series_label(fig, x_end, y_end, label, color=CLEAN_BLACK):
         showarrow=False,
         xanchor='left',
         xshift=8,
-        font=dict(family='Georgia, serif', size=11, color=color),
+        font=dict(family='Georgia, serif', size=CLEAN_LABEL_SIZE, color=CLEAN_BLACK),
     )
 
 def add_point_annotation(fig, x, y, text, color=CLEAN_BLACK):
@@ -150,7 +165,7 @@ def add_point_annotation(fig, x, y, text, color=CLEAN_BLACK):
         arrowwidth=0.8,
         arrowcolor=CLEAN_MEDIUM_GRAY,
         ax=0, ay=-25,
-        font=dict(family='Georgia, serif', size=10, color=color),
+        font=dict(family='Georgia, serif', size=CLEAN_LABEL_SIZE, color=color),
     )
 ```
 
@@ -169,7 +184,7 @@ def clean_bar_chart(categories, values, color=CLEAN_MEDIUM_GRAY):
         marker_line_width=0,
         text=[str(v) for v in values],
         textposition='outside',
-        textfont=dict(family='Georgia, serif', size=10, color=CLEAN_BLACK),
+        textfont=dict(family='Georgia, serif', size=CLEAN_LABEL_SIZE, color=CLEAN_BLACK),
     ))
 
     # White gridlines over bars
@@ -209,7 +224,7 @@ def clean_scatter(x, y, labels=None, color=CLEAN_BLACK):
             fig.add_annotation(
                 x=xi, y=yi, text=label,
                 showarrow=False, xshift=8, yshift=5,
-                font=dict(family='Georgia, serif', size=9, color=CLEAN_BLACK),
+                font=dict(family='Georgia, serif', size=CLEAN_SMALL_SIZE, color=CLEAN_BLACK),
             )
 
     return fig
@@ -253,13 +268,11 @@ def clean_small_multiples(data_dict, ncols=3, chart_type='line'):
             )
 
     # Apply clean-viz styling to all axes
-    fig.update_xaxes(showgrid=False, ticks='inside', showline=True,
-                     linecolor=CLEAN_BLACK, linewidth=1, zeroline=False)
-    fig.update_yaxes(showgrid=False, ticks='inside', showline=True,
-                     linecolor=CLEAN_BLACK, linewidth=1, zeroline=False)
+    fig.update_xaxes(showgrid=False, ticks='inside', showline=False, zeroline=False)
+    fig.update_yaxes(showgrid=False, ticks='inside', showline=False, zeroline=False)
 
     fig.update_layout(
-        font=dict(family='Georgia, serif', size=10),
+        font=dict(family='Georgia, serif', size=CLEAN_SMALL_SIZE),
         paper_bgcolor='white',
         plot_bgcolor='white',
         showlegend=False,
@@ -268,7 +281,7 @@ def clean_small_multiples(data_dict, ncols=3, chart_type='line'):
 
     # Style subplot titles
     for annotation in fig['layout']['annotations']:
-        annotation['font'] = dict(family='Georgia, serif', size=11, color=CLEAN_BLACK)
+        annotation['font'] = dict(family='Georgia, serif', size=CLEAN_LABEL_SIZE, color=CLEAN_BLACK)
 
     return fig
 ```
@@ -297,7 +310,7 @@ def clean_sparkline(data, width=200, height=30):
         y=[data[0], data[-1], data[min_idx], data[max_idx]],
         mode='markers',
         marker=dict(
-            color=[CLEAN_BLACK, CLEAN_BLACK, CLEAN_ACCENT, '#117733'],
+            color=[CLEAN_BLACK, CLEAN_BLACK, CLEAN_ACCENT, CLEAN_ACCENT],
             size=4,
         ),
         showlegend=False,
@@ -338,7 +351,7 @@ def clean_heatmap(z, x_labels, y_labels, colorscale='Greys'):
                 x=x_labels[j], y=y_labels[i],
                 text=f'{val:.1f}',
                 showarrow=False,
-                font=dict(family='Georgia, serif', size=10, color=text_color),
+                font=dict(family='Georgia, serif', size=CLEAN_LABEL_SIZE, color=text_color),
             )
 
     fig.update_xaxes(showgrid=False, showline=False, ticks='')
@@ -354,12 +367,13 @@ def clean_heatmap(z, x_labels, y_labels, colorscale='Greys'):
 When comparing multiple series, use direct labels instead of a legend:
 
 ```python
-CLEAN_LINE_DASHES = ['solid', 'dash', 'dashdot', 'dot']
-
 def clean_multi_line(x, y_dict, colors=None):
     """Multiple line series with direct labels, line style variation, and collision-aware labeling."""
+    if len(y_dict) > len(CLEAN_COLORS):
+        raise ValueError('Use small multiples for more than 6 line series.')
+
     fig = go.Figure(layout=CLEAN_LAYOUT)
-    palette = colors or [CLEAN_BLACK, CLEAN_MEDIUM_GRAY, CLEAN_ACCENT, CLEAN_LIGHT_GRAY]
+    palette = colors or CLEAN_COLORS
 
     all_y = []
     endpoints = []  # collect for collision-aware labeling
@@ -383,22 +397,32 @@ def clean_multi_line(x, y_dict, colors=None):
     # Each label needs ~1.5 line-heights of space; scale to data units.
     # If all labels were stacked, they'd need n_labels * gap units of room.
     # Cap at 5% per label to avoid over-spreading on sparse data.
-    min_gap = min(y_range * 0.05, y_range / max(n_labels, 1) * 0.6)
+    min_gap = min((y_range or 1) * 0.05, (y_range or 1) / max(n_labels, 1) * 0.6)
     display_ys = []
+    x_min, x_max = min(x), max(x)
+    x_pad = (x_max - x_min) * 0.18 or 1
+    label_x = x_max + x_pad * 0.35
     for i, (x_end, y_end, name, color) in enumerate(endpoints_sorted):
         pos = y_end
         if i > 0 and pos - display_ys[i - 1] < min_gap:
             pos = display_ys[i - 1] + min_gap
         display_ys.append(pos)
-        fig.add_annotation(
-            x=x_end, y=pos, text=name,
-            showarrow=pos != y_end,  # leader line if displaced
-            arrowhead=0, arrowwidth=0.6, arrowcolor=CLEAN_LIGHT_GRAY,
-            ax=0, ay=(y_end - pos) * 0.5 if pos != y_end else 0,
-            xanchor='left', xshift=8,
-            font=dict(family='Georgia, serif', size=11, color=color),
-        )
+        fig.add_trace(go.Scatter(
+            x=[label_x], y=[pos], mode='text',
+            text=[name],
+            textposition='middle left',
+            textfont=dict(family='Georgia, serif', size=CLEAN_LABEL_SIZE, color=CLEAN_BLACK),
+            showlegend=False,
+            hoverinfo='skip',
+        ))
+        if pos != y_end:
+            fig.add_shape(
+                type='line',
+                x0=x_end, y0=y_end, x1=label_x, y1=pos,
+                xref='x', yref='y',
+                line=dict(color=color, width=0.8),
+            )
 
-    apply_plotly_range_frame(fig, x, all_y)
+    apply_plotly_range_frame(fig, x, all_y, x_pad_fraction=0.18)
     return fig
 ```

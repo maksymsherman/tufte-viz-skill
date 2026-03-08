@@ -80,6 +80,9 @@ CLEAN_COLORS = [
     '#88CCEE',  # cyan    (low contrast — avoid for lines on white)
     '#999933',  # olive   (low contrast — avoid for lines on white)
 ]
+
+# High-contrast subset for line series and small markers on white backgrounds.
+CLEAN_LINE_COLORS = CLEAN_COLORS[:6]
 ```
 
 ---
@@ -89,16 +92,27 @@ CLEAN_COLORS = [
 Bind spine extents to the actual data range:
 
 ```python
-def apply_range_frame(ax, x, y):
-    """Apply range frames: spines span only the data range."""
-    ax.spines['bottom'].set_bounds(min(x), max(x))
-    ax.spines['left'].set_bounds(min(y), max(y))
+def apply_range_frame(ax, x, y, pad_fraction=0.05):
+    """Apply range frames with tight limits and ticks clipped to the data range."""
+    x_min, x_max = min(x), max(x)
+    y_min, y_max = min(y), max(y)
+    x_pad = (x_max - x_min) * pad_fraction or 1
+    y_pad = (y_max - y_min) * pad_fraction or 1
+
+    ax.spines['bottom'].set_bounds(x_min, x_max)
+    ax.spines['left'].set_bounds(y_min, y_max)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
 
-    # Set ticks to only cover data range
-    ax.set_xlim(min(x) - (max(x) - min(x)) * 0.05, max(x) + (max(x) - min(x)) * 0.05)
-    ax.set_ylim(min(y) - (max(y) - min(y)) * 0.05, max(y) + (max(y) - min(y)) * 0.05)
+    ax.set_xlim(x_min - x_pad, x_max + x_pad)
+    ax.set_ylim(y_min - y_pad, y_max + y_pad)
+    ax.xaxis.set_major_locator(ticker.MaxNLocator(nbins=5))
+    ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins=5))
+
+    # Filter auto-generated ticks back to the data range so the range frame stays honest.
+    ax.figure.canvas.draw()
+    ax.set_xticks([tick for tick in ax.get_xticks() if x_min <= tick <= x_max])
+    ax.set_yticks([tick for tick in ax.get_yticks() if y_min <= tick <= y_max])
 ```
 
 Usage:
@@ -116,15 +130,15 @@ plt.tight_layout()
 ## Direct Labeling (Replace Legends)
 
 ```python
-def label_line(ax, x, y, label, color=CLEAN_BLACK, offset=(5, 0)):
-    """Place a text label at the end of a line series."""
+def label_line(ax, x, y, label, offset=(6, 0), label_color=CLEAN_BLACK):
+    """Place a neutral-color text label at the end of a line series."""
     ax.annotate(
         label,
         xy=(x[-1], y[-1]),
         xytext=offset,
         textcoords='offset points',
         fontsize=CLEAN_LABEL_SIZE,
-        color=color,
+        color=label_color,
         va='center',
         fontfamily='serif',
     )
@@ -135,10 +149,6 @@ label_line(ax, x, y1, 'Series A')
 
 ax.plot(x, y2, color=CLEAN_MEDIUM_GRAY, linewidth=1.2)
 label_line(ax, x, y2, 'Series B')
-
-# Remove the legend entirely
-ax.legend().set_visible(False)
-# Or better: never call ax.legend() at all
 ```
 
 ### Collision-Aware Multi-Series Labeling
@@ -153,44 +163,49 @@ def label_lines_no_overlap(ax, series_endpoints, min_gap_pts=12):
 
     Args:
         ax: matplotlib Axes
-        series_endpoints: list of (x_end, y_end, label, color) tuples
+        series_endpoints: list of (x_end, y_end, label, line_color) tuples
         min_gap_pts: minimum vertical gap between labels in points
     """
     # Sort by y-value so we can stack from bottom to top
     sorted_items = sorted(series_endpoints, key=lambda s: s[1])
 
-    # Convert min_gap from points to data coordinates
+    # Convert offsets from points to data coordinates.
     fig = ax.get_figure()
     fig.canvas.draw()
     inv = ax.transData.inverted()
+    x0, _ = inv.transform((0, 0))
+    x1, _ = inv.transform((28, 0))
     _, y0 = inv.transform((0, 0))
     _, y1 = inv.transform((0, min_gap_pts))
+    label_dx = abs(x1 - x0)
     gap_data = abs(y1 - y0)
 
     # Assign display positions, pushing overlapping labels upward
     display_positions = []
-    for i, (x_end, y_end, label, color) in enumerate(sorted_items):
+    for i, (x_end, y_end, label, line_color) in enumerate(sorted_items):
         pos = y_end
         if i > 0 and pos - display_positions[i - 1] < gap_data:
             pos = display_positions[i - 1] + gap_data
         display_positions.append(pos)
 
     # Draw labels; add a leader line if label was displaced
-    for (x_end, y_end, label, color), y_display in zip(sorted_items, display_positions):
+    for (x_end, y_end, label, line_color), y_display in zip(sorted_items, display_positions):
         displaced = abs(y_display - y_end) > gap_data * 0.1
-        if displaced:
-            ax.annotate(
-                label, xy=(x_end, y_end), xytext=(8, 0),
-                xycoords='data', textcoords=('offset points', ('data', y_display)),
-                fontsize=CLEAN_LABEL_SIZE, color=color, va='center', fontfamily='serif',
-                arrowprops=dict(arrowstyle='-', color=CLEAN_LIGHT_GRAY, lw=0.6),
-            )
-        else:
-            ax.annotate(
-                label, xy=(x_end, y_end), xytext=(8, 0),
-                textcoords='offset points',
-                fontsize=CLEAN_LABEL_SIZE, color=color, va='center', fontfamily='serif',
-            )
+        ax.annotate(
+            label,
+            xy=(x_end, y_end),
+            xytext=(x_end + label_dx, y_display),
+            xycoords='data',
+            textcoords='data',
+            fontsize=CLEAN_LABEL_SIZE,
+            color=CLEAN_BLACK,
+            va='center',
+            fontfamily='serif',
+            arrowprops=(
+                dict(arrowstyle='-', color=line_color, lw=0.8)
+                if displaced else None
+            ),
+        )
 ```
 
 ---
@@ -259,7 +274,7 @@ def clean_line_plot(ax, x, y, color=CLEAN_BLACK, label=None):
     ax.scatter(x, y, color='white', s=80, zorder=2, edgecolors='none')
     ax.scatter(x, y, color=color, s=15, zorder=3, edgecolors='none')
     if label:
-        label_line(ax, x, y, label, color=color)
+        label_line(ax, x, y, label)
 ```
 
 ---
@@ -277,18 +292,24 @@ def clean_multi_line_plot(ax, x, series_dict, colors=None):
         ax: matplotlib Axes
         x: shared x-axis data
         series_dict: dict of {label: y_values}
-        colors: optional list of colors (defaults to CLEAN_COLORS)
+        colors: optional list of colors (defaults to CLEAN_LINE_COLORS)
     """
-    palette = colors or CLEAN_COLORS
+    if len(series_dict) > len(CLEAN_LINE_COLORS):
+        raise ValueError('Use small multiples for more than 6 line series.')
+
+    palette = colors or CLEAN_LINE_COLORS
     endpoints = []
+    all_y = []
 
     for i, (label, y) in enumerate(series_dict.items()):
         color = palette[i % len(palette)]
         style = CLEAN_LINE_STYLES[i % len(CLEAN_LINE_STYLES)]
         ax.plot(x, y, linestyle=style, color=color, linewidth=1.2)
         endpoints.append((x[-1], y[-1], label, color))
+        all_y.extend(y)
 
-    # Collision-aware labeling (see label_lines_no_overlap)
+    apply_range_frame(ax, x, all_y)
+    pad_axis_for_labels(ax, x, all_y)
     label_lines_no_overlap(ax, endpoints)
 ```
 
@@ -299,7 +320,7 @@ def clean_multi_line_plot(ax, x, series_dict, colors=None):
 Bars with horizontal white lines replacing traditional gridlines:
 
 ```python
-def clean_bar_chart(ax, categories, values, color=CLEAN_MEDIUM_GRAY):
+def clean_bar_chart(ax, categories, values, color=CLEAN_MEDIUM_GRAY, value_fmt='{:.0f}'):
     """Bar chart using white gridlines instead of axis spines."""
     bars = ax.bar(categories, values, color=color, edgecolor='none', width=0.6)
 
@@ -321,7 +342,7 @@ def clean_bar_chart(ax, categories, values, color=CLEAN_MEDIUM_GRAY):
         label_y = height + offset if height >= 0 else height - offset
         ax.text(
             bar.get_x() + bar.get_width() / 2, label_y,
-            f'{val}',
+            value_fmt.format(val),
             ha='center', va='bottom' if height >= 0 else 'top',
             fontsize=CLEAN_LABEL_SIZE, fontfamily='serif', color=CLEAN_BLACK,
         )
@@ -448,10 +469,10 @@ def clean_slope_chart(ax, labels, left_values, right_values,
     # Column headers
     ax.text(0, max(left_positions) + 1, left_label,
             ha='center', va='bottom', fontsize=CLEAN_FONT_SIZE, fontfamily='serif',
-            fontweight='bold', color=CLEAN_BLACK)
+            fontweight='normal', color=CLEAN_BLACK)
     ax.text(1, max(right_positions) + 1, right_label,
             ha='center', va='bottom', fontsize=CLEAN_FONT_SIZE, fontfamily='serif',
-            fontweight='bold', color=CLEAN_BLACK)
+            fontweight='normal', color=CLEAN_BLACK)
 
     # Remove all axes
     ax.axis('off')
@@ -477,7 +498,7 @@ def clean_sparkline(ax, data, color=CLEAN_BLACK, highlight_endpoints=True):
         min_idx = np.argmin(data)
         max_idx = np.argmax(data)
         ax.scatter([min_idx], [data[min_idx]], color=CLEAN_ACCENT, s=8, zorder=3)
-        ax.scatter([max_idx], [data[max_idx]], color='#117733', s=8, zorder=3)
+        ax.scatter([max_idx], [data[max_idx]], color=CLEAN_ACCENT, s=8, zorder=3)
 
     # Remove everything except the line
     ax.axis('off')
@@ -501,7 +522,7 @@ def sparkline_grid(data_dict, figsize=(10, None)):
         clean_sparkline(ax, data)
         ax.text(-1, np.mean(data), label, ha='right', va='center',
                 fontsize=CLEAN_SMALL_SIZE, fontfamily='serif', color=CLEAN_BLACK)
-        ax.text(len(data), data[-1], f' {data[-1]:.1f}',
+        ax.text(len(data), data[-1], f' {data[-1]:g}',
                 ha='left', va='center', fontsize=CLEAN_SMALL_SIZE, fontfamily='serif',
                 color=CLEAN_BLACK)
 
