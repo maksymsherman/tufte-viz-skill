@@ -107,8 +107,11 @@ Apply ALL of the following to every visualization:
 - **Colorblind-safe palette** — when multiple colors are required, use the Paul Tol palette ordered by contrast (high-contrast first):
   - `#332288` (indigo), `#CC6677` (rose), `#117733` (green), `#882255` (wine),
     `#44AA99` (teal), `#AA4499` (purple), `#88CCEE` (cyan), `#999933` (olive)
-  - The first 6 colors are safe for lines and text on white; cyan and olive are low-contrast — reserve for fills or large areas only
-- **Ensure sufficient contrast on white backgrounds** — lighter palette colors (e.g., cyan `#88CCEE`, olive `#999933`) are hard to read as thin lines or small text on white. For line charts and labels, prefer the high-contrast subset: indigo (`#332288`), teal (`#44AA99`), green (`#117733`), rose (`#CC6677`), wine (`#882255`), purple (`#AA4499`). Reserve lower-contrast colors for fills, large areas, or thick bars where readability is not an issue
+- **Match color contrast to element type** — not all visual elements need the same contrast level. Tie the palette constraint to what the color is applied to:
+  - **Lines, text, and small markers** (high contrast required): use only the first 6 palette colors (indigo through purple). These are legible at 1-2pt line widths and 9-11pt text on white
+  - **Bars, filled areas, and large markers** (moderate contrast sufficient): all 8 palette colors are acceptable, including cyan (`#88CCEE`) and olive (`#999933`), because the larger filled area compensates for lower contrast
+  - **Legend text and labels** should always use `CLEAN_BLACK` — even when the associated data element uses a low-contrast color. Use a colored swatch, dash, or marker next to the label instead of coloring the text itself
+- **Beyond 6 line series, change strategy** — if you need more than 6 distinguishable lines or text-labeled series, do not reach for low-contrast colors. Instead: use small multiples to split series into groups, group related series under a shared color with line style variation, or aggregate. The palette is not infinitely extensible; the design must adapt
 - **Never use rainbow/jet colormaps** — use sequential single-hue (grays, blues) or diverging (blue-white-red) instead
 
 ### Layout & Density
@@ -144,8 +147,11 @@ Do NOT generate these chart types. If the user requests one, explain the visuali
 - **No gradient fills** — solid colors only
 - **No drop shadows** — on any element
 - **No 3D perspective effects** — ever
-- **No heavy gridlines** — if gridlines are needed, use thin light gray (`#eeeeee`) or white-on-bar technique
-- **Use reference lines for horizontal bar charts** — readers need help judging position along a horizontal scale. Add thin light gray (`#eeeeee`) vertical reference lines at round intervals (e.g., every 5 or 10 units). This is the horizontal equivalent of the white-on-bar technique used for vertical bars
+- **No heavy gridlines** — if gridlines are needed, use the appropriate technique for the chart context (see reference line rules below)
+- **Reference lines by context** — reference lines serve different roles depending on whether they sit on top of colored bars or behind bars on a white background. Use the right color for each context:
+  - **On top of colored bars** (vertical bar charts): use white (`#ffffff`) gridlines — the bar fill provides contrast
+  - **Behind bars on a white background** (horizontal bar charts, or any chart where reference lines sit against white): use `#d0d0d0` — visible enough to aid position judgment without competing with the data. `#eeeeee` is nearly invisible against white and should not be used in this context
+  - **Round intervals** — place reference lines at clean round numbers (every 5, 10, 25, etc.) that align with the data scale
 - **No decorative borders or boxes** — around legends, titles, or annotations
 - **No ALL CAPS text** — in titles, labels, or annotations
 - **No rotated tick labels** — if labels are too long, use a horizontal bar chart or abbreviate

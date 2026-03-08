@@ -47,7 +47,8 @@ Run through every item after generating visualization code. Each item is pass/fa
 - [ ] At most one accent color used for emphasis
 - [ ] No rainbow, jet, or spectral colormaps
 - [ ] If multiple colors needed, using a colorblind-safe palette
-- [ ] Colors used for lines and text have sufficient contrast on white — no low-contrast colors (cyan `#88CCEE`, olive `#999933`) for thin lines or small text
+- [ ] Colors used for lines and text have sufficient contrast on white — no low-contrast colors (cyan `#88CCEE`, olive `#999933`) for thin lines or small text. Low-contrast colors are acceptable for bars and filled areas
+- [ ] Legend text and labels use `CLEAN_BLACK`, not the series color, when the series color is low-contrast
 - [ ] No gradient fills on bars or areas
 - [ ] Background is white
 
@@ -64,8 +65,9 @@ Run through every item after generating visualization code. Each item is pass/fa
 ## Gridlines
 
 - [ ] No heavy or dark gridlines
-- [ ] If gridlines present, they are either: thin light gray (#eeeeee) or white-on-bar technique
+- [ ] If gridlines present, they use the correct technique for context: white on top of colored bars; `#d0d0d0` behind bars on white background
 - [ ] Gridlines do not overlap with data markers
+- [ ] **Reference line visibility**: if reference lines were added, verify they are visually distinguishable from the background at the output resolution — `#eeeeee` lines on a white background fail this check
 
 ## Graphical Integrity
 

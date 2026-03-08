@@ -140,6 +140,7 @@ const CLEAN = {
   lineColor: '#333333',
   mediumGray: '#888888',
   lightGray: '#cccccc',
+  refGray: '#d0d0d0',    // reference lines behind bars on white
   accent: '#c0392b',
   margin: { top: 20, right: 80, bottom: 40, left: 50 },
 };
@@ -424,9 +425,10 @@ Regardless of which library you use, verify these after generating code:
 2. **Range frames**: Spine bounds match data extent (not axis extent)
 3. **Font**: Serif family specified explicitly
 4. **Ticks**: Inward direction, reduced density
-5. **Grid**: Removed or white-on-bar only
+5. **Grid**: Removed, white-on-bar, or `#d0d0d0` reference lines behind bars on white. Never `#eeeeee` behind bars on white (invisible)
 6. **Legend**: Removed; replaced with direct labels
 7. **Colors**: Grayscale default, single accent if needed
 8. **Background**: Pure white, no fills or images
 9. **Title**: Sentence case, positioned at left
 10. **Chart type**: No pie, 3D, dual-axis, or other banned types
+11. **Reference line visibility**: if reference lines were added, verify they are distinguishable from the background at output resolution

@@ -49,6 +49,7 @@ CLEAN_LAYOUT = dict(
 CLEAN_BLACK = '#333333'
 CLEAN_MEDIUM_GRAY = '#888888'
 CLEAN_LIGHT_GRAY = '#cccccc'
+CLEAN_REF_GRAY = '#d0d0d0'   # reference lines behind bars on white background
 CLEAN_ACCENT = '#c0392b'
 ```
 

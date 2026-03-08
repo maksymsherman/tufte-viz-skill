@@ -50,6 +50,7 @@ CLEAN_DARK_GRAY = '#555555'
 CLEAN_MEDIUM_GRAY = '#888888'
 CLEAN_LIGHT_GRAY = '#cccccc'
 CLEAN_FAINT_GRAY = '#eeeeee'
+CLEAN_REF_GRAY = '#d0d0d0'   # reference lines behind bars on white background
 CLEAN_ACCENT = '#c0392b'  # muted red, for emphasis only
 
 # Typography constants — always reference these instead of hardcoding sizes.
@@ -66,7 +67,9 @@ CLEAN_LINE_STYLES = ['solid', 'dashed', (0, (4, 2, 1, 2)), 'dotted']
 
 # Colorblind-safe palette (Paul Tol) — ordered by contrast on white backgrounds.
 # High-contrast colors come first; use these for lines, text, and small elements.
-# Lower-contrast colors (cyan, olive) are at the end — use only for fills or large areas.
+# Lower-contrast colors (cyan, olive) are at the end — acceptable for bars and
+# filled areas, but avoid for lines, text, or small markers on white.
+# For legend text next to low-contrast colors, always use CLEAN_BLACK.
 CLEAN_COLORS = [
     '#332288',  # indigo  (high contrast)
     '#CC6677',  # rose    (high contrast)
@@ -358,8 +361,9 @@ def clean_horizontal_bar_chart(ax, categories, values, color=CLEAN_MEDIUM_GRAY,
     for spine in ax.spines.values():
         spine.set_visible(False)
 
-    # Thin vertical reference lines at round intervals
-    ax.xaxis.grid(color=CLEAN_FAINT_GRAY, linewidth=0.8)
+    # Vertical reference lines behind bars on white — use CLEAN_REF_GRAY, not
+    # CLEAN_FAINT_GRAY (#eeeeee is invisible against a white background)
+    ax.xaxis.grid(color=CLEAN_REF_GRAY, linewidth=0.8)
     ax.set_axisbelow(True)  # reference lines behind bars
 
     # Remove tick marks
