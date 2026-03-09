@@ -14,6 +14,7 @@ skills/clean-viz/
     general-patterns.md
 eval/
   check_response.py     # Tracked smoke-test harness for saved model responses
+  verify_reference_examples.py  # Render-check the runnable Python reference examples
   cases/                # Canonical prompt expectations (regex-based)
 benchmark/
   chartbench-data/      # .gitignored — 9.7GB dataset, download locally
@@ -42,6 +43,18 @@ python3 eval/check_response.py --responses-dir /path/to/saved-responses
 ```
 
 The harness is intentionally lightweight and regex-based. It is a policy smoke test, not a rendering benchmark.
+
+## Reference Example Verification
+
+The tracked repo now also includes a render verifier for the runnable Python reference examples in `skills/clean-viz/references/`.
+
+Run it with:
+
+```bash
+uv run --with matplotlib --with numpy --with seaborn --with plotly --with kaleido --with pandas --with altair --with vl-convert-python python eval/verify_reference_examples.py
+```
+
+It extracts the Python definitions directly from the markdown reference files, renders them, and writes artifacts to a temporary directory unless `--output-dir` is provided.
 
 ## ChartBench Testing
 

@@ -11,6 +11,10 @@
 ### Added
 - Tracked `eval/` smoke-test harness for saved responses
 - Verification-model documentation in `README.md`
+- Render verifier for runnable markdown reference examples in `eval/verify_reference_examples.py`
+
+### Fixed
+- Altair direct-label reference pattern now handles normal shorthand encodings such as `year:Q`
 
 ## 1.0.0 (2026-02-09)
 

@@ -67,8 +67,16 @@ alt.themes.enable('clean')
 ### Line Chart with Direct Labels
 
 ```python
+def _field_name(shorthand):
+    """Resolve Altair shorthand like 'year:Q' to the raw field name."""
+    parsed = alt.utils.parse_shorthand(shorthand)
+    return parsed.get('field', shorthand).replace('\\:', ':')
+
 def clean_line_chart(df, x_col, y_col, color_col=None):
-    """Line chart in Altair with direct labels."""
+    """Line chart in Altair with direct labels.
+
+    Accepts either raw field names or Altair shorthand such as 'year:Q'.
+    """
     base = alt.Chart(df).encode(
         x=alt.X(x_col, axis=alt.Axis(grid=False)),
         y=alt.Y(y_col, axis=alt.Axis(grid=False)),
@@ -77,22 +85,24 @@ def clean_line_chart(df, x_col, y_col, color_col=None):
     line = base.mark_line(strokeWidth=1.5, color=CLEAN['black'])
 
     if color_col:
+        x_field = _field_name(x_col)
+        color_field = _field_name(color_col)
         line = base.mark_line(strokeWidth=1.5).encode(
             color=alt.Color(color_col, legend=None, scale=alt.Scale(range=CLEAN['colors'])),
         )
 
         labels = alt.Chart(df).transform_joinaggregate(
-            max_x=f'max({x_col})',
-            groupby=[color_col],
+            max_x=f'max({x_field})',
+            groupby=[color_field],
         ).transform_filter(
-            f'datum.{x_col} == datum.max_x'
+            f'datum.{x_field} == datum.max_x'
         ).mark_text(
             align='left', dx=6, font='Georgia',
             fontSize=CLEAN['label_size'], color=CLEAN['black'],
         ).encode(
             x=x_col,
             y=y_col,
-            text=color_col,
+            text=color_field,
         )
         return (line + labels).properties(width=500, height=300)
 

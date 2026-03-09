@@ -35,6 +35,27 @@ Batch mode expects filenames that match the case names:
 - `pie-substitution.md`
 - `plotly-multi-line.md`
 
+## Reference Example Rendering
+
+To render-check the runnable Python reference examples from the markdown docs:
+
+```bash
+uv run --with matplotlib --with numpy --with seaborn --with plotly --with kaleido --with pandas --with altair --with vl-convert-python python eval/verify_reference_examples.py
+```
+
+This verifier:
+
+- extracts the runnable Python definitions directly from the reference markdown files
+- renders matplotlib, seaborn, Plotly, and Altair examples
+- writes PNG artifacts to a temporary directory by default
+- can target a specific output directory with `--output-dir`
+
+On slim Linux environments, Plotly static export may require common Chrome runtime libraries in addition to `kaleido`. On current Ubuntu releases, this package set is sufficient:
+
+```bash
+sudo apt-get install -y libnss3 libatk-bridge2.0-0 libcups2 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libxkbcommon0 libpango-1.0-0 libcairo2 libasound2t64
+```
+
 ## Limits
 
 This harness does not render charts. It checks whether the response follows the house contract. Use local ChartBench runs when you need visual QA.

@@ -64,7 +64,9 @@ The plugin has three layers:
    - `general-patterns.md` — Altair, D3.js, ggplot2, Observable Plot
    - `checklist.md` — Mandatory quality gate used before finalizing a chart
 
-3. **eval/** — A small tracked response-check harness for policy regressions such as banned-type substitution, audit summaries, units, and direct-label intent
+3. **eval/** — A tracked verification area with:
+   - `check_response.py` for policy-regression smoke tests on saved responses
+   - `verify_reference_examples.py` for render-checking the runnable Python reference examples in the markdown docs
 
 ## Examples
 
@@ -108,6 +110,14 @@ The tracked `eval/` harness is a lightweight smoke test for saved responses. It 
 - audit summary presence
 - units and direct-label intent
 - multi-series distinguishability cues
+
+For render-level verification of the reference examples themselves, run:
+
+```bash
+uv run --with matplotlib --with numpy --with seaborn --with plotly --with kaleido --with pandas --with altair --with vl-convert-python python eval/verify_reference_examples.py
+```
+
+The script extracts the runnable Python examples directly from the reference markdown, renders them, and writes artifacts to a temporary directory (or a directory you pass with `--output-dir`).
 
 The heavier ChartBench workflow remains local-only and is documented in [CLAUDE.md](CLAUDE.md).
 
