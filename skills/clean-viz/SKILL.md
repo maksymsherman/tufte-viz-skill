@@ -217,7 +217,7 @@ If you cannot render the chart, you must still run the code checks, but you must
 Before running generated Python visualization code, ensure the required libraries are installed.
 
 ### Prefer `uv` over `pip`
-1. **Check for `uv`** — run `which uv` to see if it is available
+1. **Check for `uv`** — use an OS-appropriate command such as `command -v uv`, `which uv`, or `where uv`
 2. If `uv` is found:
    - If no `pyproject.toml` exists, run `uv init --bare` to create a minimal one
    - Then run `uv add <packages>` (e.g., `uv add matplotlib seaborn numpy`) to install dependencies

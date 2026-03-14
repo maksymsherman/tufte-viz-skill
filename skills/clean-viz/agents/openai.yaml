@@ -1,0 +1,3 @@
+interface:
+  display_name: "Clean Viz"
+  short_description: "Apply Tufte-inspired chart rules and audit generated visualizations."

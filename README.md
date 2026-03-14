@@ -1,12 +1,12 @@
 # clean-viz-skill
 
-A Claude Code plugin that applies clean-viz heuristics and an explicit audit workflow to chart-generation requests. Best support is for matplotlib, seaborn, and Plotly; other libraries are covered with secondary reference patterns.
+A reusable visualization skill for Claude Code and Codex that applies clean-viz heuristics and an explicit audit workflow to chart-generation requests. Best support is for matplotlib, seaborn, and Plotly; other libraries are covered with secondary reference patterns.
 
 > **Note**: This project is not affiliated with Edward Tufte. It applies visualization principles described in his published works.
 
 ## What it does
 
-This skill activates when you ask Claude to create, restyle, or critique a data visualization. It applies these principles:
+This skill activates when you ask the agent to create, restyle, or critique a data visualization. It applies these principles:
 
 - **Maximizes data-ink ratio** — removes non-data elements (extra spines, heavy gridlines, decorative fills)
 - **Uses range frames** — axis lines span only the data range
@@ -27,6 +27,19 @@ This skill activates when you ask Claude to create, restyle, or critique a data 
 | Secondary | D3.js, Observable Plot | Pattern sketches to adapt into an existing chart scaffold |
 
 ## Installation
+
+### Codex
+
+Install the skill globally from GitHub with the installer script that ships with Codex:
+
+```bash
+python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py \
+  --url https://github.com/maksymsherman/clean-viz-skill/tree/main/skills/clean-viz
+```
+
+If your system does not expose `python3`, use `python` instead. Restart Codex after installation so it picks up the new skill.
+
+The installed skill includes Codex UI metadata in `skills/clean-viz/agents/openai.yaml`, while the Claude plugin continues to load the same source skill from `skills/clean-viz/`.
 
 ### From the plugin marketplace (recommended)
 
@@ -54,7 +67,7 @@ claude --plugin-dir /path/to/clean-viz-skill
 
 ## How it works
 
-The plugin has three layers:
+The shared skill has three layers:
 
 1. **SKILL.md** — Core principles, mandatory rules, banned chart types with substitutes, and a response protocol. This loads whenever a visualization request is detected.
 
